@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="source/rpcReceivers.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="source/rpcSenders.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="source/main.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="source/rpc/client.cpp">
+      <Filter>rpc</Filter>
+    </ClCompile>
+    <ClCompile Include="source/rpc/server.cpp">
+      <Filter>rpc</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include/rpcDefinitions.hpp">
+      <Filter>test</Filter>
+    </ClInclude>
+    <ClInclude Include="include/rpc/client.hpp">
+      <Filter>rpc</Filter>
+    </ClInclude>
+    <ClInclude Include="include/rpc/receivers.hpp">
+      <Filter>rpc</Filter>
+    </ClInclude>
+    <ClInclude Include="include/rpc/senders.hpp">
+      <Filter>rpc</Filter>
+    </ClInclude>
+    <ClInclude Include="include/rpc/server.hpp">
+      <Filter>rpc</Filter>
+    </ClInclude>
+    <ClInclude Include="include/rpc/detail/receiver.hpp">
+      <Filter>rpc\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="include/rpc/detail/sender.hpp">
+      <Filter>rpc\detail</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="test">
+      <UniqueIdentifier>{cae9b19c-dae4-48a0-9ee0-9a49fccab8b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="rpc">
+      <UniqueIdentifier>{6a9badf7-c652-4a1c-90ec-d8c1e82b6dc1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="rpc\detail">
+      <UniqueIdentifier>{0f7038da-3a9f-416c-8394-9083e0cc99fb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
