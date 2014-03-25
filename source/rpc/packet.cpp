@@ -77,28 +77,5 @@ namespace RPC
 			m_position += length;
 			return m_data.data() + m_position - length;
 		}
-
-		void PacketTest()
-		{
-			Packet p( Packet::MakeEmptyResult() );
-			p.AddMember< std::string >( std::string( "Foo!" ) );
-			p.GetNextMember< std::string >();
-
-			{
-				typedef std::vector< int > Vec;
-				Vec vec;
-				vec.push_back( 42 );
-				vec.push_back( 1337 );
-				p.AddMember< Vec >( vec );
-				p.GetNextMember< Vec >();
-			}
-			{
-				typedef std::vector< std::string > Vec;
-				Vec vec;
-				vec.emplace_back( "ohai" );
-				p.AddMember< Vec >( vec );
-				p.GetNextMember< Vec >();
-			}
-		}
 	}
 }

@@ -53,6 +53,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -69,6 +70,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -83,6 +85,8 @@
     <ClCompile Include="source/rpcSenders.cpp" />
     <ClCompile Include="source/rpc/server.cpp" />
     <ClCompile Include="source/rpc/client.cpp" />
+    <ClCompile Include="source\rpc\iReceiver.cpp" />
+    <ClCompile Include="source\rpc\packet.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include/rpcDefinitions.hpp" />
@@ -92,6 +96,9 @@
     <ClInclude Include="include/rpc/receivers.hpp" />
     <ClInclude Include="include/rpc/detail/receiver.hpp" />
     <ClInclude Include="include/rpc/detail/sender.hpp" />
+    <ClInclude Include="include\rpc\detail\helpers.hpp" />
+    <ClInclude Include="include\rpc\detail\packet.hpp" />
+    <ClInclude Include="include\rpc\exceptions.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

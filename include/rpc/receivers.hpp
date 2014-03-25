@@ -7,6 +7,6 @@
 #define RPC_FUNCTION( name, retType, ... ) retType name( __VA_ARGS__ );
 #include "rpcDefinitions.hpp"
 #undef RPC_FUNCTION
-#define RPC_FUNCTION( name, ... ) RPC::Receiver< __VA_ARGS__ > name##_receiver( name );
+#define RPC_FUNCTION( name, ... ) RPC::detail::Receiver< __VA_ARGS__ > name##_receiver( name );
 
 #endif // RPC_RECEIVERS_HPP_INCLUDED

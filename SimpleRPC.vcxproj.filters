@@ -16,6 +16,12 @@
     <ClCompile Include="source/rpc/server.cpp">
       <Filter>rpc</Filter>
     </ClCompile>
+    <ClCompile Include="source\rpc\iReceiver.cpp">
+      <Filter>rpc\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="source\rpc\packet.cpp">
+      <Filter>rpc\detail</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include/rpcDefinitions.hpp">
@@ -37,6 +43,15 @@
       <Filter>rpc\detail</Filter>
     </ClInclude>
     <ClInclude Include="include/rpc/detail/sender.hpp">
+      <Filter>rpc\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rpc\exceptions.hpp">
+      <Filter>rpc</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rpc\detail\packet.hpp">
+      <Filter>rpc\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rpc\detail\helpers.hpp">
       <Filter>rpc\detail</Filter>
     </ClInclude>
   </ItemGroup>

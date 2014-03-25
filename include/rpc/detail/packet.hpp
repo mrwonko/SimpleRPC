@@ -2,6 +2,7 @@
 #define RPC_DETAIL_PACKET_HPP_INCLUDED
 
 #include "../exceptions.hpp"
+#include "helpers.hpp"
 
 #include <vector>
 #include <type_traits>
@@ -16,19 +17,6 @@ namespace RPC
 		class Packet
 		{
 		public:
-			/// Remove const and reference
-			template< typename T >
-			struct Plain
-			{
-				typedef typename std::remove_const< typename std::remove_reference< T >::type >::type type;
-			};
-
-			/// Add const and reference
-			template< typename T >
-			struct ConstRef
-			{
-				typedef typename std::add_lvalue_reference< typename std::add_const< T >::type>::type type;
-			};
 
 			enum class ErrorType : char
 			{
@@ -55,8 +43,8 @@ namespace RPC
 		private:
 			enum class MessageType : char
 			{
-				Call,
-				Result, // Contains results from a function call, first the reference parameters in ascending order, then the returned value, if any.
+				Call, // Contains the RPC ID, followed by arguments in ascending order.
+				Result, // Contains results from a function call: return value, last reference argument, ..., first reference argument (where available).
 				Error // contains an error type, followed by the what() string
 			};
 
@@ -187,7 +175,7 @@ namespace RPC
 		}
 
 		template< typename T >
-		typename Packet::Plain< T >::type Packet::GetPlainData()
+		typename Plain< T >::type Packet::GetPlainData()
 		{
 			typedef typename Plain< T >::type PlainT;
 			PlainT result;
@@ -202,7 +190,7 @@ namespace RPC
 		}
 
 		template< typename T >
-		typename Packet::Plain< T >::type Packet::GetNextMember( )
+		typename Plain< T >::type Packet::GetNextMember( )
 		{
 			return Specialized< Plain< T >::type >::GetNextMember( *this );
 		}

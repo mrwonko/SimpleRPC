@@ -3,29 +3,41 @@
 
 namespace RPC
 {
-	template < typename RetType, typename... Parameters >
-	class Sender
+	namespace detail
 	{
-	public:
-		Sender();
+		template < typename RetType, typename... Parameters >
+		class Sender
+		{
+		public:
+			Sender();
+			~Sender();
 
-		RetType operator()( Parameters... parameters );
-	};
+			/**
+				@brief Remote Procedure Call
+			**/
+			RetType operator()( Parameters... parameters );
+		};
 
-	// Specialization for no parameters. (Can't have no arguments due to variadic macro limitations)
-	template< typename RetType >
-	class Sender< RetType, void > : public Sender< RetType >
-	{
-	};
+		// Specialization for no parameters. (Can't have no arguments due to variadic macro limitations)
+		template< typename RetType >
+		class Sender< RetType, void > : public Sender< RetType >
+		{
+		};
 
-	template < typename RetType, typename... Parameters >
-	Sender< RetType, Parameters... >::Sender()
-	{
-	}
+		template < typename RetType, typename... Parameters >
+		Sender< RetType, Parameters... >::Sender()
+		{
+		}
 
-	template < typename RetType, typename... Parameters >
-	RetType Sender< RetType, Parameters... >::operator()( Parameters... parameters )
-	{
+		template < typename RetType, typename... Parameters >
+		Sender< RetType, Parameters... >::~Sender( )
+		{
+		}
+
+		template < typename RetType, typename... Parameters >
+		RetType Sender< RetType, Parameters... >::operator()( Parameters... parameters )
+		{
+		}
 	}
 }
 

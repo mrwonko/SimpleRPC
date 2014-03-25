@@ -5,10 +5,10 @@
 
 namespace RPC
 {
-#	define RPC_FUNCTION( name, ... ) extern Sender< __VA_ARGS__ > name;
+#	define RPC_FUNCTION( name, ... ) extern detail::Sender< __VA_ARGS__ > name;
 #	include "rpcDefinitions.hpp"
 #	undef RPC_FUNCTION
-#	define RPC_FUNCTION( name, ... ) Sender< __VA_ARGS__ > name;
+#	define RPC_FUNCTION( name, ... ) detail::Sender< __VA_ARGS__ > name;
 }
 
 #endif // RPC_SENDERS_HPP_INCLUDED

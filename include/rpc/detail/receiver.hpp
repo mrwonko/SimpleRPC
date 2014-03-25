@@ -1,29 +1,115 @@
 #ifndef RPC_RECEIVER_HPP_INCLUDED
 #define RPC_RECEIVER_HPP_INCLUDED
 
-#include <tuple>
-#include <istream>
+#include <type_traits>
+
+#include "packet.hpp"
+#include "helpers.hpp"
 
 namespace RPC
 {
-	template < typename RetType, typename... Parameters >
-	class Receiver
+	namespace detail
 	{
-	public:
-		typedef RetType( *Funcptr )( Parameters... );
-		Receiver( Funcptr ptr );
+		/// Receiver Interface, so a list can be kept
+		class IReceiver
+		{
+		public:
+			IReceiver();
+			virtual ~IReceiver();
+			virtual void Receive( Packet& input, Packet& output ) = 0;
 
-		void Receive( std::istream& stream );
-	private:
-		RetType Call( std::tuple< Parameters... > parameters );
+		private:
+			IReceiver( IReceiver&& ) = delete;
+			IReceiver( const IReceiver& ) = delete;
+			IReceiver& operator=( const IReceiver& ) = delete;
+		};
 
-		Funcptr m_ptr;
-	};
+		/// Shared Receiver Code
+		template< typename RetType, typename... Parameters >
+		class ActualReceiver : public IReceiver
+		{
+		public:
+			typedef RetType( *Funcptr )( Parameters... );
+			ActualReceiver( Funcptr ptr ) : m_ptr( ptr ) {}
 
-	template < typename RetType, typename... Parameters >
-	Receiver< RetType, Parameters... >::Receiver( Funcptr ptr )
-		: m_ptr( ptr )
-	{
+			void Receive( Packet& input, Packet& output );
+		private:
+			void HandleArguments( Packet& input, Packet& output, TypeList<>, Parameters... parameters );
+			template< typename Head, typename... Tail, typename... Arguments >
+			void HandleArguments( Packet& input, Packet& output, TypeList< Head, Tail... >, Arguments... arguments );
+
+			const Funcptr m_ptr;
+		};
+
+
+
+		//    Receiver class - handles Parameters being (void)
+
+		template< typename RetType, typename... Parameters >
+		class Receiver : public ActualReceiver< RetType, Parameters... >
+		{
+		public:
+			Receiver( Funcptr ptr ) : ActualReceiver( ptr ) {}
+		};
+
+		template< typename RetType >
+		class Receiver< RetType, void > : ActualReceiver< RetType >
+		{
+		public:
+			Receiver( Funcptr ptr ) : ActualReceiver( ptr ) {}
+		};
+
+		// Return value handler - handles return value being void
+		template< typename RetType, typename... Parameters >
+		struct ResultStorer
+		{
+			typedef RetType( *Funcptr )( Parameters... );
+			static void Call( Packet& output, Funcptr ptr, Parameters... parameters )
+			{
+				// function with return value, send it back!
+				output.AddMember< RetType >( ptr( parameters... ) );
+			}
+		};
+
+		template< typename... Parameters >
+		struct ResultStorer < void, Parameters... >
+		{
+			typedef void( *Funcptr )( Parameters... );
+			static void Call( Packet& output, Funcptr ptr, Parameters... parameters )
+			{
+				// no return value, just call function with parameters.
+				ptr( parameters... );
+			}
+		};
+
+		//    Implementation
+
+		template< typename RetType, typename... Parameters >
+		void ActualReceiver< RetType, Parameters... >::HandleArguments( Packet& input, Packet& output, TypeList<>, Parameters... parameters )
+		{
+			ResultStorer< RetType, Parameters... >::Call( output, m_ptr, parameters... );
+		}
+
+		template< typename RetType, typename... Parameters >
+		template< typename Head, typename... Tail, typename... Arguments >
+		void ActualReceiver< RetType, Parameters... >::HandleArguments( Packet& input, Packet& output, TypeList< Head, Tail... >, Arguments... arguments )
+		{
+			typedef typename Plain< Head >::type PlainArgument; 
+			PlainArgument arg( input.GetNextMember< PlainArgument >() );
+			HandleArguments( input, output, TypeList< Tail... >(), arguments..., arg );
+			// non-const reference?
+			if( std::is_reference< Head >::value && !std::is_const< typename std::remove_reference< Head >::type >::value )
+			{
+				// That needs to be written back, send it back!
+				output.AddMember< PlainArgument >( arg );
+			}
+		}
+
+		template< typename RetType, typename... Parameters >
+		void ActualReceiver<RetType, Parameters... >::Receive( Packet& input, Packet& output )
+		{
+			HandleArguments( input, output, TypeList< Parameters... >() );
+		}
 	}
 }
 
