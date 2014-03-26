@@ -42,13 +42,16 @@ int main( int argc, char** argv )
 	if( false )
 	{
 	}
-	RPC::HelloWorld( );
-	std::cout << "Get42 -> " << RPC::Get42( ) << std::endl;
+	std::cout << "RPC::HelloWorld() -> ";
+	RPC::HelloWorld();
+	std::cout << "Get42() -> " << RPC::Get42() << std::endl;
 	std::cout << "GetI( 1337 ) -> " << RPC::GetI( 1337 ) << std::endl;
+	std::cout << "HelloI( -42 ) -> ";
 	RPC::HelloI( -42 );
 	int i = -1;
 	RPC::GetRef( i );
-	std::cout << "GetRef -> " << i << std::endl;
+	std::cout << "GetRef() -> " << i << std::endl;
+	std::cout << R"(HelloStr( "RPC" ) -> )";
 	RPC::HelloStr( "RPC" );
 
 	std::string ignored;
