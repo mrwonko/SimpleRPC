@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 2.8.8)
 project(SimpleRPC)
 
 # enable C++11
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+if(NOT MSVC)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif(NOT MSVC)
 
 try_compile( IsTriviallyCopyableAvailable # result var
 	"${PROJECT_BINARY_DIR}/cmake_try_compile" # bin dir

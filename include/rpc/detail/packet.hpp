@@ -19,7 +19,7 @@ namespace RPC
 		
 		class Packet
 		{
-			template< class T > friend class SpecializedPacket;
+			template< class T > friend struct SpecializedPacket;
 			
 		public:
 			enum class ErrorType : char
