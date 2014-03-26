@@ -2,6 +2,7 @@
 #define RPC_RECEIVER_HPP_INCLUDED
 
 #include <type_traits>
+#include <vector>
 
 #include "packet.hpp"
 #include "helpers.hpp"
@@ -14,10 +15,12 @@ namespace RPC
 		class IReceiver
 		{
 		public:
+			static Packet Receive( unsigned int index, Packet& input );
+		protected:
 			IReceiver();
 			virtual ~IReceiver();
-			virtual void Receive( Packet& input, Packet& output ) = 0;
 
+			virtual void Receive( Packet& input, Packet& output ) = 0;
 		private:
 			IReceiver( IReceiver&& ) = delete;
 			IReceiver( const IReceiver& ) = delete;
@@ -28,10 +31,9 @@ namespace RPC
 		template< typename RetType, typename... Parameters >
 		class ActualReceiver : public IReceiver
 		{
-		public:
+		protected:
 			typedef RetType( *Funcptr )( Parameters... );
 			ActualReceiver( Funcptr ptr ) : m_ptr( ptr ) {}
-
 			void Receive( Packet& input, Packet& output );
 		private:
 			void HandleArguments( Packet& input, Packet& output, TypeList<>, Parameters... parameters );
@@ -88,6 +90,7 @@ namespace RPC
 		void ActualReceiver< RetType, Parameters... >::HandleArguments( Packet& input, Packet& output, TypeList<>, Parameters... parameters )
 		{
 			ResultStorer< RetType, Parameters... >::Call( output, m_ptr, parameters... );
+			
 		}
 
 		template< typename RetType, typename... Parameters >
@@ -108,7 +111,7 @@ namespace RPC
 		template< typename RetType, typename... Parameters >
 		void ActualReceiver<RetType, Parameters... >::Receive( Packet& input, Packet& output )
 		{
-			HandleArguments( input, output, TypeList< Parameters... >() );
+			HandleArguments( input, output, TypeList< Parameters... >( ) );
 		}
 	}
 }

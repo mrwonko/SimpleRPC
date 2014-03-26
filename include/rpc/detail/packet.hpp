@@ -9,6 +9,7 @@
 #include <cstring>
 #include <string>
 #include <sstream>
+#include <utility>
 
 namespace RPC
 {
@@ -22,7 +23,8 @@ namespace RPC
 			{
 				EndOfPacket,
 				InvalidParameter,
-				UnexpectedPacket
+				UnexpectedPacket,
+				RPCException // RPC threw
 			};
 
 			static Packet MakeError( const ErrorType type, const std::string& what );
@@ -39,6 +41,7 @@ namespace RPC
 			typename Plain< T >::type GetNextMember();
 
 			const std::vector< char > GetData() const { return m_data; }
+			std::vector< char >&& MoveData() { return std::move( m_data ); }
 
 		private:
 			enum class MessageType : char
@@ -74,7 +77,7 @@ namespace RPC
 			const char* GetData( unsigned int length );
 
 			std::vector< char > m_data;
-			unsigned int m_position;
+			unsigned int m_position{ 0 };
 
 			//    Specialization
 
@@ -91,14 +94,14 @@ namespace RPC
 
 				static T GetNextMember( Packet& p )
 				{
-					MemberType type = p.GetPlainData< MemberType >( );
+					MemberType type = p.GetPlainData< MemberType >();
 					if( type != MemberType::Plain )
 					{
 						std::stringstream ss;
 						ss << "Expected Plain data member, got " << int( type ) << "!";
-						throw InvalidParameterException( ss.str( ) );
+						throw InvalidParameterException( ss.str() );
 					}
-					return p.GetPlainData< T >( );
+					return p.GetPlainData< T >();
 				}
 
 				static void AddMember( Packet& p, typename ConstRef< T >::type t )
@@ -114,12 +117,12 @@ namespace RPC
 			{
 				static std::string GetNextMember( Packet& p )
 				{
-					MemberType type = p.GetPlainData< MemberType >( );
-					if( type != MemberType::Plain )
+					MemberType type = p.GetPlainData< MemberType >();
+					if( type != MemberType::String )
 					{
 						std::stringstream ss;
 						ss << "Expected Plain data member, got " << int( type ) << "!";
-						throw InvalidParameterException( ss.str( ) );
+						throw InvalidParameterException( ss.str() );
 					}
 					unsigned int size = p.GetPlainData< unsigned int >();
 					return std::string( p.GetData( size ), size );
@@ -129,7 +132,7 @@ namespace RPC
 				{
 					p.AddPlainData< MemberType >( MemberType::String );
 					p.AddPlainData< unsigned int >( str.size() );
-					p.AddData( str.data( ), str.size( ) );
+					p.AddData( str.data(), str.size() );
 				}
 			};
 
@@ -139,14 +142,14 @@ namespace RPC
 			{
 				static std::vector< T > GetNextMember( Packet& p )
 				{
-					MemberType type = p.GetPlainData< MemberType >( );
+					MemberType type = p.GetPlainData< MemberType >();
 					if( type != MemberType::Vector )
 					{
 						std::stringstream ss;
 						ss << "Expected Vector member, got " << int( type ) << "!";
-						throw InvalidParameterException( ss.str( ) );
+						throw InvalidParameterException( ss.str() );
 					}
-					unsigned int numMembers = p.GetPlainData< unsigned int >( );
+					unsigned int numMembers = p.GetPlainData< unsigned int >();
 					std::vector< T > result;
 					result.reserve( numMembers );
 					for( unsigned int i = 0; i < numMembers; ++i )
@@ -159,7 +162,7 @@ namespace RPC
 				static void AddMember( Packet& p, const std::vector< T >& vec )
 				{
 					p.AddPlainData< MemberType >( MemberType::Vector );
-					p.AddPlainData< unsigned int >( vec.size( ) );
+					p.AddPlainData< unsigned int >( vec.size() );
 					for( typename ConstRef< T >::type elem : vec )
 					{
 						p.AddMember< T >( elem );
@@ -190,7 +193,7 @@ namespace RPC
 		}
 
 		template< typename T >
-		typename Plain< T >::type Packet::GetNextMember( )
+		typename Plain< T >::type Packet::GetNextMember()
 		{
 			return Specialized< Plain< T >::type >::GetNextMember( *this );
 		}

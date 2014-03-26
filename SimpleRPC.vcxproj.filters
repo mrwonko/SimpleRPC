@@ -10,14 +10,14 @@
     <ClCompile Include="source/main.cpp">
       <Filter>test</Filter>
     </ClCompile>
-    <ClCompile Include="source/rpc/client.cpp">
-      <Filter>rpc</Filter>
-    </ClCompile>
-    <ClCompile Include="source/rpc/server.cpp">
-      <Filter>rpc</Filter>
-    </ClCompile>
-    <ClCompile Include="source\rpc\iReceiver.cpp">
+    <ClCompile Include="source\rpc\sender.cpp">
       <Filter>rpc\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="source\rpc\receiver.cpp">
+      <Filter>rpc\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="source\rpc\api.cpp">
+      <Filter>rpc</Filter>
     </ClCompile>
     <ClCompile Include="source\rpc\packet.cpp">
       <Filter>rpc\detail</Filter>
@@ -27,16 +27,10 @@
     <ClInclude Include="include/rpcDefinitions.hpp">
       <Filter>test</Filter>
     </ClInclude>
-    <ClInclude Include="include/rpc/client.hpp">
-      <Filter>rpc</Filter>
-    </ClInclude>
     <ClInclude Include="include/rpc/receivers.hpp">
       <Filter>rpc</Filter>
     </ClInclude>
     <ClInclude Include="include/rpc/senders.hpp">
-      <Filter>rpc</Filter>
-    </ClInclude>
-    <ClInclude Include="include/rpc/server.hpp">
       <Filter>rpc</Filter>
     </ClInclude>
     <ClInclude Include="include/rpc/detail/receiver.hpp">
@@ -48,10 +42,13 @@
     <ClInclude Include="include\rpc\exceptions.hpp">
       <Filter>rpc</Filter>
     </ClInclude>
-    <ClInclude Include="include\rpc\detail\packet.hpp">
+    <ClInclude Include="include\rpc\detail\helpers.hpp">
       <Filter>rpc\detail</Filter>
     </ClInclude>
-    <ClInclude Include="include\rpc\detail\helpers.hpp">
+    <ClInclude Include="include\rpc\api.hpp">
+      <Filter>rpc</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rpc\detail\packet.hpp">
       <Filter>rpc\detail</Filter>
     </ClInclude>
   </ItemGroup>

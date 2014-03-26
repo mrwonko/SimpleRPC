@@ -83,15 +83,14 @@
     <ClCompile Include="source/main.cpp" />
     <ClCompile Include="source/rpcReceivers.cpp" />
     <ClCompile Include="source/rpcSenders.cpp" />
-    <ClCompile Include="source/rpc/server.cpp" />
-    <ClCompile Include="source/rpc/client.cpp" />
-    <ClCompile Include="source\rpc\iReceiver.cpp" />
+    <ClCompile Include="source\rpc\api.cpp" />
+    <ClCompile Include="source\rpc\receiver.cpp" />
     <ClCompile Include="source\rpc\packet.cpp" />
+    <ClCompile Include="source\rpc\sender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include/rpcDefinitions.hpp" />
-    <ClInclude Include="include/rpc/client.hpp" />
-    <ClInclude Include="include/rpc/server.hpp" />
+    <ClInclude Include="include\rpc\api.hpp" />
     <ClInclude Include="include/rpc/senders.hpp" />
     <ClInclude Include="include/rpc/receivers.hpp" />
     <ClInclude Include="include/rpc/detail/receiver.hpp" />

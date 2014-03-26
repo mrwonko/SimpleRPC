@@ -5,28 +5,29 @@ namespace RPC
 	namespace detail
 	{
 		Packet::Packet( const MessageType type, std::vector< char >::size_type minSize )
-			: m_data( minSize )
-			, m_position( 0 )
 		{
+			m_data.reserve( minSize );
 			AddPlainData< MessageType >( type );
 		}
 
 		Packet::Packet( std::vector< char >&& data )
 			: m_data( data )
-			, m_position( 0 )
 		{
 		}
 
 		Packet Packet::MakeError( const ErrorType type, const std::string& string )
 		{
-			Packet p( MessageType::Error, sizeof( MessageType ) + string.size() );
+			Packet p( MessageType::Error, sizeof( MessageType ) + sizeof( MemberType ) + string.size() );
+			p.AddPlainData< ErrorType >( type );
 			p.AddMember< std::string >( string );
 			return p;
 		}
 
 		Packet Packet::MakeEmptyCall( const unsigned int index )
 		{
-			return Packet( MessageType::Call, sizeof( MessageType ) );
+			Packet p( MessageType::Call, sizeof( MessageType ) + sizeof( MemberType ) + sizeof( unsigned int ) );
+			p.AddMember< unsigned int >( index );
+			return p;
 		}
 
 		Packet Packet::MakeEmptyResult()
@@ -37,7 +38,7 @@ namespace RPC
 		Packet Packet::ReceiveCall( std::vector< char >&& data )
 		{
 			Packet p( std::forward< std::vector< char > >( data ) );
-			MessageType type = p.GetNextMember< MessageType >();
+			MessageType type = p.GetPlainData< MessageType >( );
 			if( type != MessageType::Call )
 			{
 				std::stringstream ss;
@@ -50,12 +51,29 @@ namespace RPC
 		Packet Packet::ReceiveResult( std::vector< char >&& data )
 		{
 			Packet p( std::forward< std::vector< char > >( data ) );
-			MessageType type = p.GetNextMember< MessageType >( );
-			if( type != MessageType::Result )
+			MessageType type = p.GetPlainData< MessageType >();
+			if( type == MessageType::Error )
+			{
+				ErrorType error = p.GetPlainData< ErrorType >();
+				std::string what = p.GetNextMember< std::string >();
+				switch( error )
+				{
+				case ErrorType::EndOfPacket:
+					throw EndOfPacketException( "Remote Exception: " + what );
+				case ErrorType::InvalidParameter:
+					throw InvalidParameterException( "Remote Exception: " + what );
+				case ErrorType::UnexpectedPacket:
+					throw UnexpectedPacketException( "Remote Exception: " + what );
+				default:
+					throw RPCException( "Remote Exception: " + what );
+				}
+				throw RPCException( p.GetNextMember< std::string >() );
+			}
+			else if( type != MessageType::Result )
 			{
 				std::stringstream ss;
 				ss << "Expected Result Packet, got " << int( type ) << "!";
-				throw UnexpectedPacketException( ss.str( ) );
+				throw UnexpectedPacketException( ss.str() );
 			}
 			return p;
 		}
@@ -70,7 +88,7 @@ namespace RPC
 
 		const char* Packet::GetData( unsigned int length )
 		{
-			if( m_position + length >= m_data.size() )
+			if( m_position + length > m_data.size() )
 			{
 				throw EndOfPacketException();
 			}
