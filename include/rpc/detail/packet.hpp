@@ -3,6 +3,7 @@
 
 #include "../exceptions.hpp"
 #include "helpers.hpp"
+#include "platform.hpp"
 
 #include <vector>
 #include <type_traits>
@@ -15,10 +16,12 @@ namespace RPC
 {
 	namespace detail
 	{
+		
 		class Packet
 		{
+			template< class T > friend class SpecializedPacket;
+			
 		public:
-
 			enum class ErrorType : char
 			{
 				EndOfPacket,
@@ -78,97 +81,97 @@ namespace RPC
 
 			std::vector< char > m_data;
 			unsigned int m_position{ 0 };
+		};
+		
+		//    Specialization
 
-			//    Specialization
+		// Plain Data
+		template< typename T >
+		struct SpecializedPacket
+		{
+			static_assert( !std::is_reference< T >::value, "Use std::remove_reference< T >::type for Specialized!" );
+			static_assert( !std::is_const< T >::value, "Use std::remove_const< T >::type for Specialized!" );
 
-			// Plain Data
-			template< typename T >
-			struct Specialized
+			static_assert( !std::is_pointer< T >::value, "Can't serialize pointers!" );
+			static_assert( std::is_default_constructible< typename Plain< T >::type >::value, "Only types with a default constructor can be serialized!" );
+			static_assert( IS_TRIVIALLY_COPYABLE( typename Plain< T >::type ), "Only trivially copyable types and selected STL containers can be serialized!" );
+
+			static T GetNextMember( Packet& p )
 			{
-				static_assert( !std::is_reference< T >::value, "Use std::remove_reference< T >::type for Specialized!" );
-				static_assert( !std::is_const< T >::value, "Use std::remove_const< T >::type for Specialized!" );
-
-				static_assert( !std::is_pointer< T >::value, "Can't serialize pointers!" );
-				static_assert( std::is_default_constructible< typename Plain< T >::type >::value, "Only types with a default constructor can be serialized!" );
-				static_assert( std::is_trivially_copyable< typename Plain< T >::type >::value, "Only trivially copyable types and selected STL containers can be serialized!" );
-
-				static T GetNextMember( Packet& p )
+				Packet::MemberType type = p.GetPlainData< Packet::MemberType >();
+				if( type != Packet::MemberType::Plain )
 				{
-					MemberType type = p.GetPlainData< MemberType >();
-					if( type != MemberType::Plain )
-					{
-						std::stringstream ss;
-						ss << "Expected Plain data member, got " << int( type ) << "!";
-						throw InvalidParameterException( ss.str() );
-					}
-					return p.GetPlainData< T >();
+					std::stringstream ss;
+					ss << "Expected Plain data member, got " << int( type ) << "!";
+					throw InvalidParameterException( ss.str() );
 				}
+				return p.GetPlainData< T >();
+			}
 
-				static void AddMember( Packet& p, typename ConstRef< T >::type t )
-				{
-					p.AddPlainData< MemberType >( MemberType::Plain );
-					p.AddPlainData< T >( t );
-				}
-			};
-
-			// std::string
-			template<>
-			struct Specialized< std::string >
+			static void AddMember( Packet& p, typename ConstRef< T >::type t )
 			{
-				static std::string GetNextMember( Packet& p )
-				{
-					MemberType type = p.GetPlainData< MemberType >();
-					if( type != MemberType::String )
-					{
-						std::stringstream ss;
-						ss << "Expected Plain data member, got " << int( type ) << "!";
-						throw InvalidParameterException( ss.str() );
-					}
-					unsigned int size = p.GetPlainData< unsigned int >();
-					return std::string( p.GetData( size ), size );
-				}
+				p.AddPlainData< Packet::MemberType >( Packet::MemberType::Plain );
+				p.AddPlainData< T >( t );
+			}
+		};
 
-				static void AddMember( Packet& p, const std::string& str )
-				{
-					p.AddPlainData< MemberType >( MemberType::String );
-					p.AddPlainData< unsigned int >( str.size() );
-					p.AddData( str.data(), str.size() );
-				}
-			};
-
-			// std::vector
-			template< typename T >
-			struct Specialized< std::vector< T > >
+		// std::string
+		template<>
+		struct SpecializedPacket< std::string >
+		{
+			static std::string GetNextMember( Packet& p )
 			{
-				static std::vector< T > GetNextMember( Packet& p )
+				Packet::MemberType type = p.GetPlainData< Packet::MemberType >();
+				if( type != Packet::MemberType::String )
 				{
-					MemberType type = p.GetPlainData< MemberType >();
-					if( type != MemberType::Vector )
-					{
-						std::stringstream ss;
-						ss << "Expected Vector member, got " << int( type ) << "!";
-						throw InvalidParameterException( ss.str() );
-					}
-					unsigned int numMembers = p.GetPlainData< unsigned int >();
-					std::vector< T > result;
-					result.reserve( numMembers );
-					for( unsigned int i = 0; i < numMembers; ++i )
-					{
-						result.emplace_back( p.GetNextMember< T >() );
-					}
-					return result;
+					std::stringstream ss;
+					ss << "Expected Plain data member, got " << int( type ) << "!";
+					throw InvalidParameterException( ss.str() );
 				}
+				unsigned int size = p.GetPlainData< unsigned int >();
+				return std::string( p.GetData( size ), size );
+			}
 
-				static void AddMember( Packet& p, const std::vector< T >& vec )
+			static void AddMember( Packet& p, const std::string& str )
+			{
+				p.AddPlainData< Packet::MemberType >( Packet::MemberType::String );
+				p.AddPlainData< unsigned int >( str.size() );
+				p.AddData( str.data(), str.size() );
+			}
+		};
+
+		// std::vector
+		template< typename T >
+		struct SpecializedPacket< std::vector< T > >
+		{
+			static std::vector< T > GetNextMember( Packet& p )
+			{
+				Packet::MemberType type = p.GetPlainData< Packet::MemberType >();
+				if( type != Packet::MemberType::Vector )
 				{
-					p.AddPlainData< MemberType >( MemberType::Vector );
-					p.AddPlainData< unsigned int >( vec.size() );
-					for( typename ConstRef< T >::type elem : vec )
-					{
-						p.AddMember< T >( elem );
-					}
+					std::stringstream ss;
+					ss << "Expected Vector member, got " << int( type ) << "!";
+					throw InvalidParameterException( ss.str() );
 				}
-			};
+				unsigned int numMembers = p.GetPlainData< unsigned int >();
+				std::vector< T > result;
+				result.reserve( numMembers );
+				for( unsigned int i = 0; i < numMembers; ++i )
+				{
+					result.emplace_back( p.GetNextMember< T >() );
+				}
+				return result;
+			}
+
+			static void AddMember( Packet& p, const std::vector< T >& vec )
+			{
+				p.AddPlainData< Packet::MemberType >( Packet::MemberType::Vector );
+				p.AddPlainData< unsigned int >( vec.size() );
+				for( typename ConstRef< T >::type elem : vec )
+				{
+					p.AddMember< T >( elem );
+				}
+			}
 		};
 
 		template< typename T >
@@ -185,17 +188,17 @@ namespace RPC
 			std::memcpy( &result, GetData( sizeof( PlainT ) ), sizeof( PlainT ) );
 			return result;
 		}
-
+		
 		template< typename T >
 		void Packet::AddMember( typename ConstRef< T >::type t )
 		{
-			Specialized< Plain< T >::type >::AddMember( *this, t );
+			SpecializedPacket< typename Plain< T >::type >::AddMember( *this, t );
 		}
 
 		template< typename T >
 		typename Plain< T >::type Packet::GetNextMember()
 		{
-			return Specialized< Plain< T >::type >::GetNextMember( *this );
+			return SpecializedPacket< typename Plain< T >::type >::GetNextMember( *this );
 		}
 	}
 }

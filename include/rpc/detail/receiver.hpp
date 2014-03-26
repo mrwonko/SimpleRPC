@@ -31,8 +31,9 @@ namespace RPC
 		template< typename RetType, typename... Parameters >
 		class ActualReceiver : public IReceiver
 		{
-		protected:
+		public:
 			typedef RetType( *Funcptr )( Parameters... );
+		protected:
 			ActualReceiver( Funcptr ptr ) : m_ptr( ptr ) {}
 			void Receive( Packet& input, Packet& output );
 		private:
@@ -51,14 +52,14 @@ namespace RPC
 		class Receiver : public ActualReceiver< RetType, Parameters... >
 		{
 		public:
-			Receiver( Funcptr ptr ) : ActualReceiver( ptr ) {}
+			Receiver( typename ActualReceiver< RetType, Parameters... >::Funcptr ptr ) : ActualReceiver< RetType, Parameters... >( ptr ) {}
 		};
 
 		template< typename RetType >
 		class Receiver< RetType, void > : ActualReceiver< RetType >
 		{
 		public:
-			Receiver( Funcptr ptr ) : ActualReceiver( ptr ) {}
+			Receiver( typename ActualReceiver< RetType >::Funcptr ptr ) : ActualReceiver< RetType >( ptr ) {}
 		};
 
 		// Return value handler - handles return value being void

@@ -62,16 +62,7 @@ namespace RPC
 		class Sender< void, void > : public Sender< void >{};
 
 
-		//    Implementation
-
-		template< typename T >
-		struct IsNonConstReference
-		{
-			enum
-			{
-				value = std::is_reference< Head >::value && !std::is_const< typename std::remove_reference< Head >::type >::value
-			};
-		};
+		//        Implementation
 
 		//    with return value
 
@@ -118,7 +109,7 @@ namespace RPC
 			{
 				output.AddMember< Head >( head );
 				typename std::pair< RetType, Packet > results = ArgumentsHandler< RetType, Tail... >::Handle( output, tail... );
-				head = results.second.GetNextMember< Head >();
+				head = results.second.template GetNextMember< Head >();
 				return results;
 			}
 		};
@@ -126,7 +117,8 @@ namespace RPC
 		template< typename RetType, typename... Parameters >
 		RetType Sender< RetType, Parameters... >::operator()( Parameters... parameters )
 		{
-			return ArgumentsHandler< RetType, Parameters... >::Handle( Packet::MakeEmptyCall( m_index ), parameters... ).first;
+			Packet output( Packet::MakeEmptyCall( m_index ) );
+			return ArgumentsHandler< RetType, Parameters... >::Handle( output, parameters... ).first;
 		}
 
 		//    no return value
@@ -184,7 +176,8 @@ namespace RPC
 		template< typename... Parameters >
 		void Sender< void, Parameters... >::operator()( Parameters... parameters )
 		{
-			ArgumentsHandlerNoReturn< Parameters... >::Handle( Packet::MakeEmptyCall( m_index ), parameters... );
+			Packet output( Packet::MakeEmptyCall( m_index ) );
+			ArgumentsHandlerNoReturn< Parameters... >::Handle( output, parameters... );
 		}
 	}
 }
